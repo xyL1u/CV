@@ -5,6 +5,37 @@ from tqdm import tqdm
 from torch.utils import data
 from torchvision import transforms, datasets
 from model import *
+import os
+import pickle
+from PIL import Image
+from pathlib import Path
+from pprint import pprint
+import numpy as np
+class CustomCIFAR100Dataset(data.Dataset):
+    def __init__(self, data, label, transform=None, train=True):
+        super().__init__()
+        self.data = data
+        self.label = label
+        self.train = train
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        img = self.data[idx].reshape(3, 32, 32).transpose(1, 2, 0)
+        img = Image.fromarray(img.astype('uint8'))
+
+        if self.transform:
+            img = self.transform(img)
+
+        if self.train:
+            label = self.label[idx]
+            return img, label
+        else:
+            return img
+
+
 
 # Data preparation
 transform_train = transforms.Compose([transforms.Resize((32, 32)),
@@ -16,8 +47,23 @@ transform_test = transforms.Compose([transforms.Resize((32, 32)),
                                     transforms.ToTensor(),
                                     transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 
-full_train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+train_file = 'D:\\LearnPytorch\\LearnPytorch\\ImageClassification\\CIFAR100\\train'
+test_file = 'D:\\LearnPytorch\\LearnPytorch\\ImageClassification\\CIFAR100\\test'
+label_file = 'D:\\LearnPytorch\\LearnPytorch\\ImageClassification\\CIFAR100\\meta'
+
+# Load train and test dictionaries
+train_dict = pickle.load(Path(train_file).open('rb'), encoding='bytes')
+test_dict = pickle.load(Path(test_file).open('rb'), encoding='bytes')
+labels = pickle.load(Path(label_file).open('rb'))
+pprint(labels, compact=True)
+
+# Extract and process train/test data
+train_data = train_dict[b'data']  # Numpy array of shape (50000, 3072)
+train_labels = train_dict[b'fine_labels']  # Fine-grained labels (100 classes)
+test_data = test_dict[b'data']  # Numpy array of shape (10000, 3072)
+
+full_train_dataset = CustomCIFAR100Dataset(train_data, train_labels, transform=transform_train, train=True)
+test_dataset = CustomCIFAR100Dataset(test_data, label=None, transform=transform_test, train=False)
 
 val_size = int(0.2 * len(full_train_dataset))
 train_size = len(full_train_dataset) - val_size
@@ -25,9 +71,9 @@ train_dataset, val_dataset = data.random_split(full_train_dataset, [train_size, 
 
 
 batch_size = 64
-train_loader = data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-val_loader = data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-test_loader = data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+train_loader = data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
+val_loader = data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
+test_loader = data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
 
 # Hyperparameters
 lr = 1e-4
@@ -35,7 +81,7 @@ num_epochs = 10
 
 # Model, loss function and optimizer
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = LeNet(num_classes=10).to(device)
+model = LeNet(num_classes=100).to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
