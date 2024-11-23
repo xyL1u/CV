@@ -3,14 +3,12 @@ import torch
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from torch.utils import data
-from torchvision import transforms, datasets
+from torchvision import transforms
 from model import *
-import os
 import pickle
 from PIL import Image
 from pathlib import Path
-from pprint import pprint
-import numpy as np
+
 class CustomCIFAR100Dataset(data.Dataset):
     def __init__(self, data, label, transform=None, train=True):
         super().__init__()
@@ -55,7 +53,6 @@ label_file = 'D:\\LearnPytorch\\LearnPytorch\\ImageClassification\\CIFAR100\\met
 train_dict = pickle.load(Path(train_file).open('rb'), encoding='bytes')
 test_dict = pickle.load(Path(test_file).open('rb'), encoding='bytes')
 labels = pickle.load(Path(label_file).open('rb'))
-pprint(labels, compact=True)
 
 # Extract and process train/test data
 train_data = train_dict[b'data']  # Numpy array of shape (50000, 3072)
@@ -178,8 +175,8 @@ def plot_training():
 
     # Loss
     plt.subplot(1, 2, 1)
-    plt.plot(epochs, train_losses, label='Train Loss', color='g', linestyle='--')
-    plt.plot(epochs, val_losses, label='Validation Loss', color='o', linestyle='-')
+    plt.plot(epochs, train_losses, label='Train Loss', color='g', linestyle='-')
+    plt.plot(epochs, val_losses, label='Validation Loss', color='orange', linestyle='-')
     plt.title('Loss Over Epochs')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
@@ -187,7 +184,7 @@ def plot_training():
 
     # Accuracy
     plt.subplot(1, 2, 2)
-    plt.plot(epochs, train_accuracies, label='Train Accuracy', color='g', linestyle='--')
+    plt.plot(epochs, train_accuracies, label='Train Accuracy', color='g', linestyle='-')
     plt.plot(epochs, val_accuracies, label='Validation Accuracy', color='orange', linestyle='-')
     plt.title('Accuracy Over Epochs')
     plt.xlabel('Epochs')
