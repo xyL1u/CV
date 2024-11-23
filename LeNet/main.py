@@ -97,7 +97,7 @@ def train_and_validate(model, train_loader, val_loader, criterion, optimizer, nu
         correct = 0
         total = 0
 
-        for inputs, labels in tqdm(train_loader, desc=f'Traning'):
+        for inputs, labels in tqdm(train_loader, desc=f'Training'):
             inputs, labels = inputs.to(device), labels.to(device)
 
             # Zero the parameter gradients
