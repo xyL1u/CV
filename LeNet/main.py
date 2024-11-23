@@ -188,7 +188,7 @@ def plot_training():
     # Accuracy
     plt.subplot(1, 2, 2)
     plt.plot(epochs, train_accuracies, label='Train Accuracy', color='g', linestyle='--')
-    plt.plot(epochs, val_accuracies, label='Validation Accuracy', color='o', linestyle='-')
+    plt.plot(epochs, val_accuracies, label='Validation Accuracy', color='orange', linestyle='-')
     plt.title('Accuracy Over Epochs')
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
