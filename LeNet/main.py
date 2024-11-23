@@ -161,7 +161,7 @@ def inference(model, test_loader):
     model.eval()
     all_predictions = []
     with torch.no_grad():
-        for inputs, _ in tqdm(test_loader, desc='Testing'):
+        for inputs in tqdm(test_loader, desc='Testing'):
             inputs = inputs.to(device)
             outputs = model(inputs)
             _, predicted = torch.max(outputs, 1)
@@ -198,8 +198,22 @@ train_and_validate(model, train_loader, val_loader, criterion, optimizer, num_ep
 plot_training()
 
 # Test the model and save predictions
-best_model = LeNet(num_classes=10).to(device)
-best_model.load_state_dict(torch.load('best_model.pth'))
+best_model = LeNet(num_classes=100).to(device)
+
+# Load the checkpoint
+checkpoint = torch.load('best_model.pth')
+
+# Restore model state
+best_model.load_state_dict(checkpoint['model_state_dict'])
+
+# Restore optimizer state (optional, for resuming training)
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+# Restore additional details
+epoch = checkpoint['epoch']
+loss = checkpoint['loss']
+accuracy = checkpoint['accuracy']
+
 test_predictions = inference(best_model, test_loader)
 
 df = pd.DataFrame({'id': range(len(test_predictions)),
