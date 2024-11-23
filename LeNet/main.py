@@ -57,6 +57,7 @@ labels = pickle.load(Path(label_file).open('rb'))
 # Extract and process train/test data
 train_data = train_dict[b'data']  # Numpy array of shape (50000, 3072)
 train_labels = train_dict[b'fine_labels']  # Fine-grained labels (100 classes)
+classes = labels['fine_label_names'] # Labels text
 test_data = test_dict[b'data']  # Numpy array of shape (10000, 3072)
 
 full_train_dataset = CustomCIFAR100Dataset(train_data, train_labels, transform=transform_train, train=True)
@@ -215,8 +216,9 @@ loss = checkpoint['loss']
 accuracy = checkpoint['accuracy']
 
 test_predictions = inference(best_model, test_loader)
+class_names = [classes[label] for label in test_predictions]
 
-df = pd.DataFrame({'id': range(len(test_predictions)),
-                   'label': test_predictions})
+df = pd.DataFrame({'id': range(1, len(class_names) + 1),
+                   'label': class_names})
 df.to_csv('test_predictions.csv', index=False)
 print('Predictions are successfully saved')
